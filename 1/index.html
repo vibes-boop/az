@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video Gallery UI</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #000000;
+      color: #ffffff;
+      -webkit-tap-highlight-color: transparent;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 4px;
+    }
+    /* Hide native video controls overlay but keep default behavior */
+    video::-webkit-media-controls {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="flex justify-center min-h-screen bg-black">
+
+  <!-- Main Container Mobile View Frame -->
+  <div class="w-full max-w-[480px] min-h-screen bg-black px-4 py-3 flex flex-col gap-3">
+    
+    <!-- 1. TOP SECTION: VIDEO PLAYER -->
+    <div class="relative bg-[#121212] rounded-2xl overflow-hidden shadow-2xl border border-gray-900 group">
+      
+      <!-- HTML5 Video Player Container -->
+      <div class="relative w-full aspect-[16/10] bg-zinc-900 flex items-center justify-center overflow-hidden">
+        
+        <!-- Video Element -->
+        <video id="main-video" class="w-full h-full object-cover cursor-pointer" playsinline muted>
+          <source id="video-source" src="https://cdn.videy.co/oO0Bp5IB1.mp4" type="video/mp4">
+          Browser Anda tidak mendukung tag video.
+        </video>
+
+        <!-- Overlay Dark Gradient (shows when paused or hovered) -->
+        <div id="video-overlay" onclick="togglePlay()" class="absolute inset-0 bg-black/30 transition-opacity duration-300 flex items-center justify-center cursor-pointer">
+          <!-- Central Play/Pause Button -->
+          <button id="main-play-btn" class="relative z-10 w-16 h-16 bg-black/70 hover:bg-black/90 text-white rounded-full flex items-center justify-center backdrop-blur-md transition-transform active:scale-95 border border-white/10 pointer-events-none">
+            <i id="play-icon" class="fa-solid fa-play text-2xl ml-1"></i>
+          </button>
+        </div>
+
+        <!-- Video Player Bottom Controls Overlay -->
+        <div class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/60 to-transparent flex flex-col gap-1.5 z-20 pointer-events-auto">
+          
+          <!-- Progress Bar Slider -->
+          <div id="progress-container" onclick="seekVideo(event)" class="w-full bg-gray-700/60 h-1.5 rounded-full overflow-hidden cursor-pointer flex items-center">
+            <div id="progress-bar" class="bg-gray-300 h-full w-0 transition-all duration-75"></div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="flex items-center justify-between text-xs font-medium pt-1 text-gray-200">
+            <!-- Left: Time Counter -->
+            <span id="time-display" class="tracking-wide text-gray-300">0:00 / 1:36</span>
+            
+            <!-- Right: Action Icons -->
+            <div class="flex items-center gap-4 text-sm text-gray-300">
+              <button onclick="toggleMute()" class="hover:text-white transition-colors focus:outline-none">
+                <i id="mute-icon" class="fa-solid fa-volume-xmark"></i>
+              </button>
+              <button onclick="toggleFullscreen()" class="hover:text-white transition-colors focus:outline-none">
+                <i class="fa-solid fa-expand"></i>
+              </button>
+              <button class="hover:text-white transition-colors focus:outline-none">
+                <i class="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Video Info Header (Title & Views Counter) -->
+    <div class="flex items-center justify-between px-1 py-1">
+      <h1 id="active-title" class="text-xl font-bold tracking-tight text-white">1000266335</h1>
+      <div class="flex items-center gap-1.5 text-xs font-medium">
+        <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+        <span id="active-views" class="text-orange-500 font-semibold">123k <span class="text-purple-400 font-normal">tayangan</span></span>
+      </div>
+    </div>
+
+    <!-- 2. BOTTOM SECTION: 2-COLUMN GRID ITEM LIST -->
+    <div class="grid grid-cols-2 gap-x-3 gap-y-4 pt-1" id="video-grid">
+      <!-- Grid items injected by JavaScript -->
+    </div>
+
+  </div>
+
+  <script>
+    // Video Data Items
+    const videos = [
+      { id: "1000267482", duration: "0:59", views: "84 tay", imgId: 101, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267483", duration: "2:20", views: "53 tay", imgId: 102, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267481", duration: "1:06", views: "73 tay", imgId: 103, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267480", duration: "0:39", views: "19 tay", imgId: 104, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267485", duration: "1:54", views: "23 tay", imgId: 105, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267490", duration: "1:20", views: "43 tay", imgId: 106, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267210", duration: "0:48", views: "18 tay", imgId: 107, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+      { id: "1000267207", duration: "1:25", views: "6,4 tay", imgId: 108, src: "https://cdn.videy.co/oO0Bp5IB1.mp4" },
+    ];
+
+    const video = document.getElementById('main-video');
+    const playIcon = document.getElementById('play-icon');
+    const overlay = document.getElementById('video-overlay');
+    const progressBar = document.getElementById('progress-bar');
+    const timeDisplay = document.getElementById('time-display');
+    const muteIcon = document.getElementById('mute-icon');
+
+    // Helper: Format seconds to M:SS
+    function formatTime(seconds) {
+      if (isNaN(seconds)) return "0:00";
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // Toggle Play/Pause
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+        playIcon.className = "fa-solid fa-pause text-2xl";
+        overlay.classList.add('opacity-0');
+      } else {
+        video.pause();
+        playIcon.className = "fa-solid fa-play text-2xl ml-1";
+        overlay.classList.remove('opacity-0');
+      }
+    }
+
+    // Update Progress Bar & Timer text
+    video.ontimeupdate = () => {
+      if (video.duration) {
+        const percentage = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = percentage + '%';
+        timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+      }
+    };
+
+    // Seek Video Position
+    function seekVideo(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      if (video.duration) {
+        video.currentTime = pos * video.duration;
+      }
+    }
+
+    // Toggle Mute
+    function toggleMute() {
+      video.muted = !video.muted;
+      if (video.muted) {
+        muteIcon.className = "fa-solid fa-volume-xmark";
+      } else {
+        muteIcon.className = "fa-solid fa-volume-high";
+      }
+    }
+
+    // Fullscreen Toggle
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        if (video.requestFullscreen) video.requestFullscreen();
+        else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // Render Thumbnail Grid Items
+    function renderGrid() {
+      const gridContainer = document.getElementById('video-grid');
+      gridContainer.innerHTML = videos.map((v) => `
+        <div onclick="selectVideo('${v.id}', '${v.src}')" 
+             class="flex items-center gap-2.5 p-1 rounded-xl cursor-pointer hover:bg-zinc-900/70 transition-colors group">
+          <!-- Thumbnail Image -->
+          <div class="w-14 h-14 rounded-2xl overflow-hidden bg-zinc-800 shrink-0 relative">
+            <img src="https://picsum.photos/100/100?random=${v.imgId}" 
+                 alt="${v.id}" 
+                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                 onerror="this.src='https://placehold.co/100x100/222/fff?text=Thumb'">
+          </div>
+          
+          <!-- Content Details -->
+          <div class="flex flex-col justify-center min-w-0">
+            <h3 class="text-sm font-semibold text-white truncate leading-tight mb-1 group-hover:text-purple-300 transition-colors">
+              ${v.id}
+            </h3>
+            
+            <!-- Metadata Icons & Text -->
+            <div class="flex items-center gap-3 text-[11px] font-medium text-pink-500">
+              <!-- Duration Info -->
+              <div class="flex items-center gap-1">
+                <i class="fa-regular fa-circle-play text-purple-400 text-[10px]"></i>
+                <span class="text-pink-500 font-medium">${v.duration}</span>
+              </div>
+              
+              <!-- Views Info -->
+              <div class="flex items-center gap-1">
+                <i class="fa-regular fa-clone text-purple-400 text-[10px]"></i>
+                <span class="text-purple-400 font-medium">${v.views}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Switch active video
+    function selectVideo(title, src) {
+      document.getElementById('active-title').innerText = title;
+      const videoSource = document.getElementById('video-source');
+      
+      video.pause();
+      videoSource.src = src;
+      video.load();
+      
+      // Auto play selected video
+      video.play().then(() => {
+        playIcon.className = "fa-solid fa-pause text-2xl";
+        overlay.classList.add('opacity-0');
+      }).catch(() => {
+        playIcon.className = "fa-solid fa-play text-2xl ml-1";
+        overlay.classList.remove('opacity-0');
+      });
+    }
+
+    // Initial setup on window load
+    window.onload = () => {
+      renderGrid();
+    };
+  </script>
+</body>
+</html>
